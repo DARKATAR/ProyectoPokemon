@@ -12,6 +12,19 @@ class Pokemon(ABC):
         self.defendiendo = False
         self.paralizado = False
 
+    def verificar_paralisis(self):
+            if self.paralizado:
+                if random.random() < 0.5:
+                    self.paralizado = False
+                    print(f"¡{self.nombre} se ha recuperado de la parálisis!")
+                    return False # No está bloqueado porque se acaba de curar
+            
+            if self.paralizado:
+                if random.random() < 0.5: # 20% de probabilidad
+                    print(f"\n¡{self.nombre} está PARALIZADO y no puede moverse!")
+                    return True # Sí está bloqueado
+                return False # No está bloqueado
+
 #DECORADORES
     @property
     def hp_actual(self):
@@ -62,9 +75,9 @@ class Pokemon(ABC):
         
         # 2. Diseño visual estilo consola
         print(f"\n┌──────────────────────────────────────────┐")
-        print(f"  {self.nombre.upper():<15} HP: {self.hp_actual}/{self.__hp_maximo}")
+        print(f"  {self.nombre.upper():<15} HP: {self.hp_actual}/{self.__hp_maximo} ❤️")
         print(f"  Lvl: 50         [{barra}]")
-        print(f"  Energía: {self.energia_actual}/{self.__energia_maxima}")
+        print(f" Energía: {self.energia_actual}/{self.__energia_maxima}⚡")
         
         # 3. Mostrar estados si existen
         if self.paralizado:
@@ -72,15 +85,17 @@ class Pokemon(ABC):
         if self.defendiendo:
             print(f"  ESCUDO: [ ACTIVO 🛡️ ]")
         print(f"└──────────────────────────────────────────┘")
-        print("="*30)
+        # print("="*30)
 
 #CLASES HIJAS: Pokemones y sus tipos, movimientos.
 class PokemonAgua (Pokemon):
     def atacar(self, oponente):
+        if self.verificar_paralisis():
+                return
         if self.energia_actual >= 15: #Primero validamos si tenemos la energia suficiente para poder atacar
             self.energia_actual = self.energia_actual - 15 #Restamos los 15 puntos de nuestra energia, porque nosotros vamos a atacar
             daño = 20 #Usamos una variable para asignar el valor del daño base que tendrá nuestro pokemon, que son 20 puntos de daño 
-
+            
             if isinstance(oponente, PokemonFuego):#Como son objetos lo que vamos a usar, validamos si lo que estamos usando es un objeto
                 daño = 40
                 print(f"[Ataque muy eficaz], el daño se multiplica el doble: [{daño} puntos]")
@@ -90,12 +105,12 @@ class PokemonAgua (Pokemon):
             if oponente.defendiendo == True:#validamos si el oponente esta usando defensa para poder reducir el daño a la mitad
                 daño = daño // 2 #Con su defensa activa, el daño que recibe se divide entre 2 (y usamos // por si por alguna razon salen decimales)
                 oponente.defendiendo = False#Entonces si al oponente se le reduce el daño es porque tiene la defensa activa, entonce ya hecha la reduccion, 
-#                                                desactivamos su escudo porque terminó su turno
+    #                                                desactivamos su escudo porque terminó su turno
                 print(f"El oponente ha usado [DEFENDER], el daño se ha reducido a la mitad.")
 
             oponente.hp_actual = oponente.hp_actual - daño#El daño que va a recibir se lo restamos de sus puntos de salud
             print(f"¡{self.nombre} ha golpeado a {oponente.nombre}!")
-            oponente.mostrar_estatus()
+                # oponente.mostrar_estatus()
         else:
             print(f"Energia insuficiente: [{self.energia_actual}]")#Sino tenemos la energia suficiente no podemos atacar
             
@@ -103,10 +118,12 @@ class PokemonAgua (Pokemon):
 
 class PokemonFuego(Pokemon):
     def atacar(self, oponente):
+        if self.verificar_paralisis():
+            return
         if self.energia_actual > 15:
             self.energia_actual = self.energia_actual - 15
             daño = 35
-
+            
             if isinstance(oponente, PokemonPlanta):
                 daño = 70
                 print(f"[Ataque muy eficaz], el daño se multiplica el doble: [{daño} puntos]")
@@ -120,7 +137,6 @@ class PokemonFuego(Pokemon):
 
             oponente.hp_actual = oponente.hp_actual - daño
             print(f"¡{self.nombre} ha golpeado a {oponente.nombre}!")
-            oponente.mostrar_estatus()
         else:
             print(f"Energia insuficiente: [{self.energia_actual}]")
             
@@ -128,38 +144,42 @@ class PokemonFuego(Pokemon):
         
 class PokemonPlanta(Pokemon):
     def atacar(self, oponente):
+        if self.verificar_paralisis():
+            return # Se corta el ataque aquí si está paralizado
         if self.energia_actual > 15:
             self.energia_actual = self.energia_actual - 15
             daño = 25
 
             if isinstance(oponente, PokemonAgua):
-                daño = 50
-                print(f"[Ataque muy eficaz], el daño se multiplica el doble: [{daño} puntos]")
+                    daño = 50
+                    print(f"[Ataque muy eficaz], el daño se multiplica el doble: [{daño} puntos]")
             else:
-                print(f"[Ataque normal], no hay ventaja de tipos: [{daño} puntos]")
+                    print(f"[Ataque normal], no hay ventaja de tipos: [{daño} puntos]")
 
             if oponente.defendiendo == True:
-                    daño = daño // 2
-                    oponente.defendiendo = False
-                    print(f"El oponente ha usado [DEFENDER], el daño se ha reducido a la mitad.")
+                        daño = daño // 2
+                        oponente.defendiendo = False
+                        print(f"El oponente ha usado [DEFENDER], el daño se ha reducido a la mitad.")
 
             oponente.hp_actual = oponente.hp_actual - daño
             print(f"¡{self.nombre} ha golpeado a {oponente.nombre}!")
-            oponente.mostrar_estatus()
         else:
-            print(f"Energia insuficiente: [{self.energia_actual}]")
-        
+                print(f"Energia insuficiente: [{self.energia_actual}]")
+                
 
 
 class PokemonElectrico(Pokemon): #Este tipo de pokemon es el unico que es diferente a los demas
     def atacar(self, oponente): #Usamos el metodo del padre atacar
+        if self.verificar_paralisis():
+            return # Se corta el ataque aquí si está paralizado
+        
         if self.energia_actual >= 15: #Validamos si tenemos energia suficiente
             self.energia_actual = self.energia_actual - 15 #Restamos la energia usada
             daño = 30#Asignamos nuestro daño base
-
-            if random.random() <=0.2: #Justo aca usaremos LA LIBRERIA RANDOM y uno de sus METODOS RANDOM para que eliga si aplica la paralisis o no tiene un probabilidad del 20%
-                oponente.paralizado = True #En caso de que random eliga un numero entre 0 y 0.2 cambiara el estado del oponente a paralizado
-                print(f"[Efecto] El oponente esta PARALIZADO!")
+            
+            if random.random() <=0.5: #Justo aca usaremos LA LIBRERIA RANDOM y uno de sus METODOS RANDOM para que eliga si aplica la paralisis o no tiene un probabilidad del 20%
+                oponente.paralizado = True #En caso de que random eliga un numero entre 0 y 0.5 cambiara el estado del oponente a paralizado
+                print(f"[EFECTO] El oponente esta PARALIZADO!")
 
             if isinstance(oponente, PokemonAgua): #Validamos si el objeto oponente pertenece a la clase PokemonAgua
                 daño = 60 #Aginamos nuestro daño base
@@ -172,7 +192,8 @@ class PokemonElectrico(Pokemon): #Este tipo de pokemon es el unico que es difere
 
             oponente.hp_actual = oponente.hp_actual - daño#Aqui restamos el daño hecho a la salud que tiene el oponente
             print(f"¡{self.nombre} ha golpeado a {oponente.nombre}!")
-            oponente.mostrar_estatus()
+
+            
         else:
             print(f"Energia insuficiente: [{self.energia_actual}]")
         
